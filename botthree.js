@@ -11,7 +11,6 @@ const defaultMessages = [
   "Thick cut potato chips are the best."
 ];
 
-
 module.exports = (context, done) => {
   context.storage.get((err, data) => {
 
@@ -20,26 +19,34 @@ module.exports = (context, done) => {
       context.storage.set({count: 1}, (err) => {
         if(err)
           return done(err);
-        let introMessage = {
-          greeting: "So you're new here, huh?",
-        };
-        done(null, introMessage);
+        let introMessage = [
+          "So you're new here, huh?",
+          "The commands are as follows: ",
+          "?command=cleardata  ## to clear the data store",
+          "?command=docs ## for the docs again",
+          "?name=YourName&message=YourMessageHere  ## to append to message",
+          "Type nothing for your chat history thus far."
+        ];
+        done(null, introMessage.join("\r\n"));
       });
     }else{
       //HAS DATA HISTORY + USER INPUT
 
       //HELP MENU
-      if(context.query.command === "docs"){
+      if(context.query.command === "docs" || context.query.command === "help"){
         let docMessages = [
           "COMMANDS ARE AS FOLLOWS",
-          "docs", "cleardata"
+          "?command=cleardata  ## to clear the data store",
+          "?command=docs ## for the docs again",
+          "?name=YourName&message=YourMessageHere  ## to append to message",
+          "Type nothing for your chat history thus far."
         ];
-        return done(null, docMessages);
+        return done(null, docMessages.join("\r\n"));
       }
 
       //CLEAR DATA STORE
       if(context.query.command === "cleardata"){
-        context.storage.set({}, (err) => {
+        context.storage.set({}, {force: 1}, (err) => {
           if(err)
             return done(err);
           return done(null, "Data store cleared.");
@@ -47,7 +54,7 @@ module.exports = (context, done) => {
       }
 
       //ADD NEW MESSAGE
-      if(context.query.name){
+      if(context.query.name && context.query.message){
         let newestMessage = {};
         newestMessage[new Date().toLocaleString()] = {
           date: new Date().toLocaleString(),
